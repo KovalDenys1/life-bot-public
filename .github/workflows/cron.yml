@@ -1,0 +1,61 @@
+name: Scheduled cron jobs
+
+on:
+  schedule:
+    - cron: '15 4 * * *'      # morning:       06:15 Oslo (UTC+2 summer)
+    - cron: '30 19 * * *'    # evening:       21:30 Oslo (UTC+2 summer)
+    - cron: '30 14 * * 5'    # friday:        16:30 Oslo (UTC+2 summer) — Fridays only
+    - cron: '0 18 * * 0'     # weekly-report: 20:00 Oslo (UTC+2 summer) — Sundays only
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which job to run'
+        required: true
+        default: 'morning'
+        type: choice
+        options:
+          - morning
+          - evening
+          - friday
+          - weekly-report
+
+jobs:
+  morning:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'morning' || github.event_name == 'schedule' && startsWith(github.event.schedule, '15 4')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /morning
+        run: |
+          curl -f --max-time 120 \
+            -H "X-Cron-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            "${{ secrets.APP_URL }}/morning"
+
+  evening:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'evening' || github.event_name == 'schedule' && startsWith(github.event.schedule, '30 19')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /evening
+        run: |
+          curl -f --max-time 120 \
+            -H "X-Cron-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            "${{ secrets.APP_URL }}/evening"
+
+  friday:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'friday' || github.event_name == 'schedule' && startsWith(github.event.schedule, '30 14')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /friday
+        run: |
+          curl -f --max-time 120 \
+            -H "X-Cron-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            "${{ secrets.APP_URL }}/friday"
+
+  weekly-report:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'weekly-report' || github.event_name == 'schedule' && startsWith(github.event.schedule, '0 18')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /weekly-report
+        run: |
+          curl -f --max-time 120 \
+            -H "X-Cron-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            "${{ secrets.APP_URL }}/weekly-report"
