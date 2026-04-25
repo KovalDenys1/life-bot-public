@@ -1,11 +1,9 @@
 name: Scheduled cron jobs
 
+# NOTE: This is an example workflow for reference only.
+# Schedule is disabled in this public repo â€” runs only via manual dispatch.
+# The actual scheduled runs happen in the private deployment repo.
 on:
-  schedule:
-    - cron: '15 4 * * *'      # morning:       06:15 Oslo (UTC+2 summer)
-    - cron: '30 19 * * *'    # evening:       21:30 Oslo (UTC+2 summer)
-    - cron: '30 14 * * 5'    # friday:        16:30 Oslo (UTC+2 summer) — Fridays only
-    - cron: '0 18 * * 0'     # weekly-report: 20:00 Oslo (UTC+2 summer) — Sundays only
   workflow_dispatch:
     inputs:
       job:
@@ -21,7 +19,7 @@ on:
 
 jobs:
   morning:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'morning' || github.event_name == 'schedule' && startsWith(github.event.schedule, '15 4')
+    if: github.event.inputs.job == 'morning'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger /morning
@@ -31,7 +29,7 @@ jobs:
             "${{ secrets.APP_URL }}/morning"
 
   evening:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'evening' || github.event_name == 'schedule' && startsWith(github.event.schedule, '30 19')
+    if: github.event.inputs.job == 'evening'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger /evening
@@ -41,7 +39,7 @@ jobs:
             "${{ secrets.APP_URL }}/evening"
 
   friday:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'friday' || github.event_name == 'schedule' && startsWith(github.event.schedule, '30 14')
+    if: github.event.inputs.job == 'friday'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger /friday
@@ -51,7 +49,7 @@ jobs:
             "${{ secrets.APP_URL }}/friday"
 
   weekly-report:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'weekly-report' || github.event_name == 'schedule' && startsWith(github.event.schedule, '0 18')
+    if: github.event.inputs.job == 'weekly-report'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger /weekly-report
